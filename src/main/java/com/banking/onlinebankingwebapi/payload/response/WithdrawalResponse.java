@@ -5,14 +5,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@Data
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
-public class WithdrawalResponse {
-    String accountNumber;
+@Data
+public class WithdrawalResponse{
+    private int responseCode;
 
-    String accountPassword;
+    private boolean success;
 
-    Double withdrawnAmount;
+    private String message;
 }

@@ -1,5 +1,6 @@
 package com.banking.onlinebankingwebapi.security.service;
 
+import com.banking.onlinebankingwebapi.exception.ApiRequestException;
 import com.banking.onlinebankingwebapi.model.Account;
 import com.banking.onlinebankingwebapi.service.AccountService;
 import com.banking.onlinebankingwebapi.service.AccountServiceImpl;
@@ -18,7 +19,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     AccountService accountService;
 
-//    Map<String, Account> map = accountService.getAccountMap();
 
     @Autowired
     public void setAccountService(AccountService accountService) {
@@ -29,14 +29,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String accountNumber) throws UsernameNotFoundException {
 
 
-        Account account ;
-        try {
-            account = this.accountService.getAccountMap().get(accountNumber);
+        Account account = this.accountService.getAccountMap().get(accountNumber);
 
-        } catch (Exception e) {
-            throw new UsernameNotFoundException("No account " + accountNumber + " exists in the database");
+        if (account == null) {
+            throw new ApiRequestException( accountNumber + " does not exist in our database");
         }
-
         return UserDetailsImpl.build(account);
     }
 }

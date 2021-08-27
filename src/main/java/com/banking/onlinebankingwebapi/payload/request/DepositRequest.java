@@ -1,13 +1,8 @@
 package com.banking.onlinebankingwebapi.payload.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
 import lombok.ToString;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 @ToString
 public class DepositRequest {
 
@@ -15,4 +10,25 @@ public class DepositRequest {
 
     private Double amount;
 
+    public DepositRequest(String accountNumber, Double amount) {
+        this.accountNumber = accountNumber;
+        this.amount = amount;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public Double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
+    }
 }
+

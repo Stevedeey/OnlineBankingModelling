@@ -16,7 +16,7 @@ public class ApiExceptionHandler {
 
         ApiException apiException=  new ApiException(e.getMessage(),
                 badRequest,
-                ZonedDateTime.now(ZoneId.of("Z")), false);
+                ZonedDateTime.now(ZoneId.of("Z")),false);
 
         return new ResponseEntity<>(apiException, badRequest);
     }

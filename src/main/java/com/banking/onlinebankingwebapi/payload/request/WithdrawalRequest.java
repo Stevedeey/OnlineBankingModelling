@@ -10,10 +10,11 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class WithdrawalRequest {
-    private int responseCode;
 
-    private boolean successful;
+    String accountNumber;
 
-    private String message;
+    String accountPassword;
+
+    Double withdrawnAmount;
 
 }
