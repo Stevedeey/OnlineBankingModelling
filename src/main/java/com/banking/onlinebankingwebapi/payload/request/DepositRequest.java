@@ -10,9 +10,16 @@ public class DepositRequest {
 
     private Double amount;
 
-    public DepositRequest(String accountNumber, Double amount) {
+    private String narration;
+
+    public DepositRequest(String accountNumber, Double amount, String narration) {
         this.accountNumber = accountNumber;
         this.amount = amount;
+        this.narration = narration;
+    }
+
+    public String getNarration() {
+        return narration;
     }
 
     public String getAccountNumber() {

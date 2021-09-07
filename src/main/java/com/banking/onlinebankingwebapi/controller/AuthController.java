@@ -27,11 +27,9 @@ public class AuthController {
 
 
 
-    final
-    AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
-    final
-    AccountService accountService;
+    private final AccountService accountService;
 
     public AuthController(AuthenticationManager authenticationManager, AccountService accountService) {
         this.authenticationManager = authenticationManager;
@@ -44,9 +42,8 @@ public class AuthController {
 
        var loginUser =  accountService.login(request);
 
-
        return  new ResponseEntity<>(loginUser, HttpStatus.OK);
-//        return  ResponseEntity.ok(loginUser);
+
     }
 
 

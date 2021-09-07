@@ -1,5 +1,6 @@
 package com.banking.onlinebankingwebapi.security.jwt;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
+
 public class AuthEntryPoint implements AuthenticationEntryPoint {
 
     private static Logger logger  = LoggerFactory.getLogger(AuthEntryPoint.class);
@@ -20,6 +22,8 @@ public class AuthEntryPoint implements AuthenticationEntryPoint {
                          AuthenticationException e) throws IOException, ServletException {
 
         logger.error("Unauthorized error: {}", e.getMessage());
+
+
 
         httpServletResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: Unauthorized");
     }

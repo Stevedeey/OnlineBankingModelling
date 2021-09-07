@@ -17,4 +17,6 @@ public class WithdrawalRequest {
 
     Double withdrawnAmount;
 
+    String narration;
+
 }

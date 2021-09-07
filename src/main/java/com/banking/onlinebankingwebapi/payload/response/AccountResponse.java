@@ -1,6 +1,5 @@
 package com.banking.onlinebankingwebapi.payload.response;
 
-import com.banking.onlinebankingwebapi.model.Account;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,11 +9,11 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class AccountInfoResponse  {
+public class AccountResponse {
 
-    private int responseCode;
-    private boolean success;
-    private String message;
-    private AccountResponse accountResponse;
+    private String accountName;
 
+    private String accountNumber;
+
+    private Double balance;
 }
