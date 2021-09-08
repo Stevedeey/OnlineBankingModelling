@@ -28,11 +28,15 @@ public class AccountHistoryDaoImpl implements DAO<TransactionDetail, Map> {
 
         AccountHistoryResponse accountHistoryResponse = new AccountHistoryResponse();
 
+        log.info("::: I entered ELSE"+ accountHistoryMap);
+
         accountHistoryResponse.setAccountBalance(transactionDetails.getAccountBalance());
         accountHistoryResponse.setAmount(transactionDetails.getAmount());
         accountHistoryResponse.setTransactionDate(transactionDetails.getTransactionDate());
         accountHistoryResponse.setNarration(transactionDetails.getNarration());
         accountHistoryResponse.setTransactionType(transactionDetails.getTransactionType());
+
+
 
         if (accountHistoryMap.containsKey(transactionDetails.getAccountNumber())) {
             List<AccountHistoryResponse> infoList = accountHistoryMap.get(transactionDetails.getAccountNumber());
@@ -41,7 +45,10 @@ public class AccountHistoryDaoImpl implements DAO<TransactionDetail, Map> {
             accountHistoryMap.put(transactionDetails.getAccountNumber(), infoList);
 
         } else {
-            accountHistoryMap.put(transactionDetails.getAccountNumber(), new ArrayList<>());
+            List<AccountHistoryResponse> accountHistoryList =  new ArrayList<>();
+            accountHistoryList.add(accountHistoryResponse);
+
+            accountHistoryMap.put(transactionDetails.getAccountNumber(), accountHistoryList);
         }
 
         return transactionDetails;

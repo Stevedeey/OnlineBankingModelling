@@ -3,6 +3,7 @@ package com.banking.onlinebankingwebapi.service;
 import com.banking.onlinebankingwebapi.exception.ApiRequestException;
 import com.banking.onlinebankingwebapi.exception.ApiResourceNotFoundException;
 import com.banking.onlinebankingwebapi.model.Account;
+import com.banking.onlinebankingwebapi.model.ETransactionType;
 import com.banking.onlinebankingwebapi.model.TransactionDetail;
 import com.banking.onlinebankingwebapi.payload.auth.LoginRequest;
 import com.banking.onlinebankingwebapi.payload.auth.LoginResponse;
@@ -49,7 +50,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Autowired
-    private  BCryptPasswordEncoder bCryptPasswordEncoder;
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
@@ -59,18 +60,18 @@ public class AccountServiceImpl implements AccountService {
     List<String> nameList = new ArrayList<>();
 
     @Autowired
-    private  AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-    private  JwtUtils jwtUtils;
+    private JwtUtils jwtUtils;
 
 
     @Autowired
-    private  AccountHistoryDaoImpl accountHistoryDao;
+    private AccountHistoryDaoImpl accountHistoryDao;
 
 
     @Override
-        public LoginResponse login(LoginRequest loginRequest) {
+    public LoginResponse login(LoginRequest loginRequest) {
 
         Authentication authentication = null;
         try {
@@ -78,7 +79,6 @@ public class AccountServiceImpl implements AccountService {
                     UsernamePasswordAuthenticationToken(
                     loginRequest.getAccountNumber(),
                     loginRequest.getAccountPassword()));
-
 
         } catch (BadCredentialsException e) {
 
@@ -96,13 +96,13 @@ public class AccountServiceImpl implements AccountService {
         // UserDetails userDetails1 =  userDetailsService.loadUserByUsername(loginRequest.getUsername());
         //alternative to the line above to retrieve userdetails
 
-       var userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        var userName = SecurityContextHolder.getContext().getAuthentication().getName();
 
-       log.info("NAMESTRING {}", userName);
+        log.info("NAMESTRING {}", userName);
 
         var user = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-      return  new LoginResponse(true, jwt);
+        return new LoginResponse(true, jwt);
 
 
     }
@@ -113,9 +113,11 @@ public class AccountServiceImpl implements AccountService {
 
         String accountNumber = Helper.generateAccountID();
 
+        Date currentDate = Helper.generateCurrentDate();
+
         CreateAccountResponse response;
 
-        if(nameList.contains(createAccountRequest.getAccountName())){
+        if (nameList.contains(createAccountRequest.getAccountName())) { //checking if there is a user with this name
             response = new CreateAccountResponse();
             response.setResponseCode(400);
             response.setSuccess(false);
@@ -123,12 +125,12 @@ public class AccountServiceImpl implements AccountService {
             return response;
         }
 
-        if(accountMap.containsKey(accountNumber)){
-          createAccount(createAccountRequest);
+        if (accountMap.containsKey(accountNumber)) {
+            createAccount(createAccountRequest);
         }
 
 
-        if (createAccountRequest.getInitialDeposit() < 500) {
+        if (createAccountRequest.getInitialDeposit() < minimumBalance) {
 
             response = new CreateAccountResponse();
             response.setResponseCode(400);
@@ -140,23 +142,37 @@ public class AccountServiceImpl implements AccountService {
 
 
         Account account = new Account();
+        Double initialDeposit = createAccountRequest.getInitialDeposit();
         account.setAccountName(createAccountRequest.getAccountName());
         account.setAcountNumber(accountNumber);
-        account.setBalance(createAccountRequest.getInitialDeposit());
+        account.setBalance(initialDeposit);
         account.setPassword(bCryptPasswordEncoder.encode(createAccountRequest.getAccountPassword()));
 
+        TransactionDetail transactionDetail = new TransactionDetail();
+
+        transactionDetail.setTransactionDate(currentDate);
+        transactionDetail.setTransactionType("Deposit");
+        transactionDetail.setAccountNumber(accountNumber);
+        transactionDetail.setAccountBalance(initialDeposit);
+        transactionDetail.setAmount(initialDeposit);
+        transactionDetail.setNarration("Initial Deposit");
+
+
+        var history = accountHistoryDao.save(transactionDetail);
+
+        log.info("::::" + history);
 
 
         if (accountMap == null) accountMap = new HashMap<>();
 
         accountMap.put(accountNumber, account);
-        nameList.add(createAccountRequest.getAccountName());
+        nameList.add(createAccountRequest.getAccountName()); // Using this to keep track of names
 
         //setting account history
 
 
         response = new CreateAccountResponse();
-        response.setMessage("Account successfully created NOW NOW"+ "Your new account number is "+ accountNumber);
+        response.setMessage("Account successfully created" + "Your new account number is " + accountNumber);
         response.setSuccess(true);
         response.setResponseCode(200);
 
@@ -168,7 +184,7 @@ public class AccountServiceImpl implements AccountService {
         DepositResponse res = new DepositResponse();
 
         //getting account by accountNumber
-        Account  userAccount  = getAccountMap().get(depositRequest.getAccountNumber());
+        Account userAccount = getAccountMap().get(depositRequest.getAccountNumber());
 
 
         if (depositRequest.getAmount() >= maximumDeposit || depositRequest.getAmount() <= minimumDeposit)
@@ -176,14 +192,14 @@ public class AccountServiceImpl implements AccountService {
 
         if (userAccount != null) {
 
-           //do Deposit
+            //do Deposit
             Double newBalance = userAccount.getBalance() + depositRequest.getAmount();
             userAccount.setBalance(newBalance);
 
-           var transactionDetail = getTransactionDetail(new TransactionDetail(),
-                                                    depositRequest, newBalance);
-           accountHistoryDao.save(transactionDetail);
-           log.info(":::Got into the deposit and save transaction history");
+            var transactionDetail = getTransactionDetail(new TransactionDetail(),
+                    depositRequest, newBalance);
+            accountHistoryDao.save(transactionDetail);
+            log.info(":::Got into the deposit and save transaction history");
 
         } else {
             throw new ApiResourceNotFoundException("Account does not exist!!!");
@@ -198,17 +214,17 @@ public class AccountServiceImpl implements AccountService {
     }
 
 
-        public WithdrawalResponse withdraw (WithdrawalRequest withdrawalRequest){
+    public WithdrawalResponse withdraw(WithdrawalRequest withdrawalRequest) {
 
         UserDetailsImpl principal = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         String accountNumber = principal.getUsername();
 
-        Account  userAccount  = getAccountMap().get(accountNumber);
+        Account userAccount = getAccountMap().get(accountNumber);
 
         WithdrawalResponse response;
 
-        if(!userAccount.getAcountNumber().equals(withdrawalRequest.getAccountNumber()) ){ //indicate that the user has not supplied his account or does not match
+        if (!userAccount.getAcountNumber().equals(withdrawalRequest.getAccountNumber())) { //indicate that the user has not supplied his account or does not match
 
             response = new WithdrawalResponse();
             response.setResponseCode(400);
@@ -220,7 +236,7 @@ public class AccountServiceImpl implements AccountService {
 
         boolean match = bCryptPasswordEncoder.matches(withdrawalRequest.getAccountPassword(), principal.getPassword());
 
-        if(!match){
+        if (!match) {
             response = new WithdrawalResponse();
             response.setResponseCode(400);
             response.setSuccess(false);
@@ -229,7 +245,7 @@ public class AccountServiceImpl implements AccountService {
 
         }
 
-        if(userAccount.getBalance() - withdrawalRequest.getWithdrawnAmount() < minimumBalance){
+        if (userAccount.getBalance() - withdrawalRequest.getWithdrawnAmount() < minimumBalance) {
             response = new WithdrawalResponse();
 
             response.setResponseCode(400);
@@ -239,6 +255,7 @@ public class AccountServiceImpl implements AccountService {
             return response;
         }
 
+        //withdrawing....
 
         Double newBalance = userAccount.getBalance() - withdrawalRequest.getWithdrawnAmount();
         userAccount.setBalance(newBalance);
@@ -246,13 +263,13 @@ public class AccountServiceImpl implements AccountService {
         //set transactionDetail
         Date currentDate = Helper.generateCurrentDate();
 
-        TransactionDetail transactionDetail  =  new TransactionDetail();
+        TransactionDetail transactionDetail = new TransactionDetail();
 
         transactionDetail.setAccountNumber(withdrawalRequest.getAccountNumber());
         transactionDetail.setAmount(withdrawalRequest.getWithdrawnAmount());
         transactionDetail.setAccountBalance(newBalance);
         transactionDetail.setTransactionDate(currentDate);
-        transactionDetail.setTransactionType("Withdrawal");
+        transactionDetail.setTransactionType(ETransactionType.WITHDRAW.toString());
         transactionDetail.setNarration(withdrawalRequest.getNarration());
 
         accountHistoryDao.save(transactionDetail);
@@ -269,22 +286,21 @@ public class AccountServiceImpl implements AccountService {
     }
 
 
-    public ResponseEntity<AccountInfoResponse> getAccountInfo (String accountNumber){
+    public ResponseEntity<AccountInfoResponse> getAccountInfo(String accountNumber) {
 
         AccountInfoResponse accountInfoResponse = new AccountInfoResponse();
         AccountResponse accountResponse = new AccountResponse();
 
         Account account = accountMap.get(accountNumber);
 
-        if(account != null){
+        if (account != null) {
 
             accountResponse.setAccountName(account.getAccountName());
             accountResponse.setAccountNumber(account.getAcountNumber());
             accountResponse.setBalance(account.getBalance());
 
             accountInfoResponse.setAccountResponse(accountResponse);
-        }
-        else {
+        } else {
             throw new ApiResourceNotFoundException("No user with this username found in our database!!");
         }
 
@@ -301,12 +317,12 @@ public class AccountServiceImpl implements AccountService {
 
 
     //::::::HELPER METHODS:::::::
-    private static String getLoggedInUserName(){
+    private static String getLoggedInUserName() {
 
-        return   SecurityContextHolder.getContext().getAuthentication().getName();
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-    private  static TransactionDetail getTransactionDetail(TransactionDetail transactionDetail, DepositRequest depositRequest, Double newBalance){
+    private static TransactionDetail getTransactionDetail(TransactionDetail transactionDetail, DepositRequest depositRequest, Double newBalance) {
 
         Date currentDate = Helper.generateCurrentDate();
 
@@ -314,9 +330,9 @@ public class AccountServiceImpl implements AccountService {
         transactionDetail.setAmount(depositRequest.getAmount());
         transactionDetail.setAccountBalance(newBalance);
         transactionDetail.setTransactionDate(currentDate);
-        transactionDetail.setTransactionType("Deposit");
+        transactionDetail.setTransactionType(ETransactionType.DEPOSIT.toString());
         transactionDetail.setNarration(depositRequest.getNarration());
 
-        return  transactionDetail;
+        return transactionDetail;
     }
 }
