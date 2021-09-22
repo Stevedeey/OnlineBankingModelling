@@ -117,13 +117,6 @@ public class AccountServiceImpl implements AccountService {
 
         CreateAccountResponse response;
 
-        if (nameList.contains(createAccountRequest.getAccountName())) { //checking if there is a user with this name
-            response = new CreateAccountResponse();
-            response.setResponseCode(400);
-            response.setSuccess(false);
-            response.setMessage("User with this name already exist");
-            return response;
-        }
 
         if (accountMap.containsKey(accountNumber)) {
             createAccount(createAccountRequest);
@@ -199,17 +192,17 @@ public class AccountServiceImpl implements AccountService {
             var transactionDetail = getTransactionDetail(new TransactionDetail(),
                     depositRequest, newBalance);
             accountHistoryDao.save(transactionDetail);
-            log.info(":::Got into the deposit and save transaction history");
+            log.info(":::Got into the deposit and saved transaction history");
 
         } else {
             throw new ApiResourceNotFoundException("Account does not exist!!!");
         }
 
-        res.setMessage("Successfully deposited amount");
+        res.setMessage("Successfully deposited a sum of "+ depositRequest.getAmount() +" Your new balance is " +userAccount.getBalance());
         res.setSuccess(true);
         res.setResponseCode(201);
 
-        return new ResponseEntity<>(res, HttpStatus.CREATED);
+        return new ResponseEntity<>(res, HttpStatus.OK);
 
     }
 
@@ -275,7 +268,10 @@ public class AccountServiceImpl implements AccountService {
         accountHistoryDao.save(transactionDetail);
 
         response = new WithdrawalResponse();
-        response.setMessage("Success Withdrawal");
+        response.setMessage("You withdrew the amount of "
+                +withdrawalRequest.getWithdrawnAmount()
+                + "successfully, Your new balance is: "
+                + userAccount.getBalance());
         response.setSuccess(true);
         response.setResponseCode(200);
 

@@ -37,7 +37,6 @@ public class AccountHistoryDaoImpl implements DAO<TransactionDetail, Map> {
         accountHistoryResponse.setTransactionType(transactionDetails.getTransactionType());
 
 
-
         if (accountHistoryMap.containsKey(transactionDetails.getAccountNumber())) {
             List<AccountHistoryResponse> infoList = accountHistoryMap.get(transactionDetails.getAccountNumber());
             infoList.add(accountHistoryResponse);

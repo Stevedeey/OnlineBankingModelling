@@ -12,23 +12,26 @@ import java.time.ZonedDateTime;
 @ControllerAdvice
 @ResponseStatus
 public class ApiExceptionHandler {
+
     @ExceptionHandler(value = {ApiRequestException.class})
-    public ResponseEntity<Object> handleApiRequestException(ApiRequestException e){
+    public ResponseEntity<Object> handleApiRequestException(ApiRequestException e) {
         HttpStatus badRequest = HttpStatus.BAD_REQUEST;
 
-        ApiException apiException=  new ApiException(e.getMessage(),
+        ApiException apiException = new ApiException(e.getMessage(),
                 badRequest,
-                ZonedDateTime.now(ZoneId.of("Z")),false);
+                ZonedDateTime.now(ZoneId.of("Z")), false);
 
-      //  return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiException);
-       return new ResponseEntity<>(apiException, badRequest);
+        //  return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiException);
+        return new ResponseEntity<>(apiException, badRequest);
     }
 
+
     @ExceptionHandler(value = {ApiResourceNotFoundException.class})
-    public ResponseEntity<Object> handleApiResourceNotFoundException(ApiResourceNotFoundException e){
+    public ResponseEntity<Object> handleApiResourceNotFoundException(ApiResourceNotFoundException e) {
         HttpStatus notFound = HttpStatus.NOT_FOUND;
+
         ApiException apiException = new ApiException(
-                e.getMessage(),notFound,
+                e.getMessage(), notFound,
                 ZonedDateTime.now(ZoneId.of("Z")), false);
 
 
